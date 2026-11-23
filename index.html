@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bunker Legal - Generador de Documentos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .main-content { display: flex; min-height: 700px; }
+        .sidebar {
+            width: 320px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-right: 2px solid #e9ecef;
+            overflow-y: auto;
+        }
+        .sidebar h3 { color: #667eea; margin-bottom: 15px; font-size: 1.2em; }
+        .template-list { list-style: none; }
+        .template-list li {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .template-list li:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+        .template-list li.active {
+            background: #667eea;
+            color: white;
+            border-color: #764ba2;
+        }
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
+        .form-section { margin-bottom: 30px; }
+        .form-section h2 { color: #667eea; margin-bottom: 20px; font-size: 1.8em; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 600;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .document-preview {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 40px;
+            margin-top: 20px;
+            font-family: 'Times New Roman', serif;
+            line-height: 1.8;
+        }
+        .document-preview h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 1.5em;
+        }
+        .document-preview p { margin-bottom: 15px; text-align: justify; }
+        .variable {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+            color: #856404;
+        }
+        .hidden { display: none; }
+        .sample-data {
+            background: #d1ecf1;
+            border: 2px solid #bee5eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .sample-data h4 { color: #0c5460; margin-bottom: 10px; }
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border-radius: 0; }
+            .sidebar, .form-section, .btn, .header { display: none; }
+            .main-content { display: block; }
+            .content-area { padding: 0; }
+            .document-preview { border: none; padding: 20px; }
+        }
+        @media (max-width: 768px) {
+            .main-content { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 2px solid #e9ecef; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚖️ Bunker Legal</h1>
+            <p>Generador Automático de Documentos Legales</p>
+        </div>
+        <div class="main-content">
+            <div class="sidebar">
+                <h3>📋 Tipo de Documento</h3>
+                <ul class="template-list">
+                    <li class="active" data-template="arrendamiento">🏠 Contrato de Arrendamiento</li>
+                    <li data-template="servicios">💼 Contrato de Servicios</li>
+                    <li data-template="compraventa">🛒 Contrato de Compraventa</li>
+                    <li data-template="nda">🔒 Acuerdo de Confidencialidad</li>
+                    <li data-template="laboral">👔 Contrato Laboral</li>
+                    <li data-template="demanda-pago">💰 Demanda de Pago</li>
+                    <li data-template="demanda-desalojo">🚪 Demanda de Desalojo</li>
+                    <li data-template="demanda-laboral">⚖️ Demanda Laboral</li>
+                    <li data-template="demanda-incumplimiento">📋 Demanda por Incumplimiento</li>
+                </ul>
+            </div>
+            <div class="content-area">
+                <div class="form-section">
+                    <h2 id="form-title">Contrato de Arrendamiento</h2>
+                    <div class="sample-data">
+                        <h4>💡 Datos de Muestra (Puedes usar estos o ingresar tus propios datos)</h4>
+                        <p><strong>Parte A:</strong> Juan Pérez García | Calle Reforma #123, CDMX | Tel: +52 55 1234 5678</p>
+                        <p><strong>Parte B:</strong> María López Rodríguez | Av. Insurgentes #456, CDMX | Tel: +52 55 8765 4321</p>
+                    </div>
+                    <div id="form-container"></div>
+                    <button class="btn btn-primary" onclick="generarDocumento()">📄 Generar Documento</button>
+                    <button class="btn btn-secondary" onclick="limpiarFormulario()">🗑️ Limpiar Formulario</button>
+                    <button class="btn btn-success" onclick="cargarDatosMuestra()">📝 Cargar Datos de Muestra</button>
+                </div>
+                <div id="preview-section" class="hidden">
+                    <h2>Vista Previa del Documento</h2>
+                    <div class="document-preview" id="document-preview"></div>
+                    <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+                    <button class="btn btn-secondary" onclick="ocultarVistaPrevia()">✖️ Cerrar Vista Previa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const templates = {
+            arrendamiento: {
+                title: "Contrato de Arrendamiento",
+                fields: [
+                    { id: "arrendador", label: "Nombre del Arrendador (Propietario)", placeholder: "Ej: Juan Pérez García" },
+                    { id: "direccion-arrendador", label: "Dirección del Arrendador", placeholder: "Ej: Calle Principal #123, Ciudad" },
+                    { id: "telefono-arrendador", label: "Teléfono del Arrendador", placeholder: "Ej: +52 555 123 4567" },
+                    { id: "arrendatario", label: "Nombre del Arrendatario (Inquilino)", placeholder: "Ej: María López Rodríguez" },
+                    { id: "direccion-arrendatario", label: "Dirección del Arrendatario", placeholder: "Ej: Av. Secundaria #456, Ciudad" },
+                    { id: "telefono-arrendatario", label: "Teléfono del Arrendatario", placeholder: "Ej: +52 555 987 6543" },
+                    { id: "direccion-propiedad", label: "Dirección de la Propiedad a Arrendar", placeholder: "Ej: Calle Terciaria #789, Colonia Centro" },
+                    { id: "renta", label: "Renta Mensual ($)", placeholder: "Ej: 15,000" },
+                    { id: "deposito", label: "Depósito ($)", placeholder: "Ej: 15,000" },
+                    { id: "fecha-inicio", label: "Fecha de Inicio", type: "date" },
+                    { id: "duracion", label: "Duración del Contrato (meses)", placeholder: "Ej: 12" }
+                ],
+                generate: function(data) {
+                    return `<h3>CONTRATO DE ARRENDAMIENTO</h3>
+                        <p>En la ciudad de ___________, a los ${getFechaActual()} días del mes de ___________.</p>
+                        <p><strong>REUNIDOS</strong></p>
+                        <p>De una parte, <span class="variable">${data.arrendador || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-arrendador'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-arrendador'] || '_______________'}</span>, en adelante denominado "EL ARRENDADOR".</p>
+                        <p>De otra parte, <span class="variable">${data.arrendatario || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-arrendatario'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-arrendatario'] || '_______________'}</span>, en adelante denominado "EL ARRENDATARIO".</p>
+                        <p><strong>EXPONEN</strong></p>
+                        <p>I. Que EL ARRENDADOR es propietario del inmueble ubicado en <span class="variable">${data['direccion-propiedad'] || '_______________'}</span>.</p>
+                        <p>II. Que EL ARRENDATARIO está interesado en arrendar dicho inmueble para uso habitacional.</p>
+                        <p><strong>CLÁUSULAS</strong></p>
+                        <p><strong>PRIMERA.- OBJETO.</strong> EL ARRENDADOR arrienda a EL ARRENDATARIO el inmueble ubicado en <span class="variable">${data['direccion-propiedad'] || '_______________'}</span>.</p>
+                        <p><strong>SEGUNDA.- RENTA.</strong> La renta mensual será de $<span class="variable">${data.renta || '___________'}</span> pesos, pagaderos los primeros 5 días de cada mes.</p>
+                        <p><strong>TERCERA.- DEPÓSITO.</strong> EL ARRENDATARIO entrega en este acto la cantidad de $<span class="variable">${data.deposito || '___________'}</span> pesos en concepto de depósito en garantía.</p>
+                        <p><strong>CUARTA.- DURACIÓN.</strong> El presente contrato tendrá una duración de <span class="variable">${data.duracion || '___'}</span> meses, iniciando el <span class="variable">${data['fecha-inicio'] || '_______________'}</span>.</p>
+                        <p><strong>QUINTA.- OBLIGACIONES DEL ARRENDATARIO.</strong> EL ARRENDATARIO se obliga a: a) Pagar la renta en la fecha estipulada. b) Mantener el inmueble en buen estado. c) No realizar modificaciones sin autorización escrita. d) Pagar los servicios de agua, luz, gas y otros.</p>
+                        <p><strong>SEXTA.- OBLIGACIONES DEL ARRENDADOR.</strong> EL ARRENDADOR se obliga a: a) Entregar el inmueble en buenas condiciones. b) Realizar las reparaciones estructurales necesarias. c) Respetar el derecho de posesión del ARRENDATARIO.</p>
+                        <p><strong>SÉPTIMA.- RESCISIÓN.</strong> El incumplimiento de cualquiera de las cláusulas dará derecho a la parte afectada a rescindir el contrato.</p>
+                        <p>Y en prueba de conformidad, firman el presente contrato por duplicado.</p>
+                        <br><br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.arrendador || '_______________'}</span></p>
+                        <p>EL ARRENDADOR</p>
+                        <br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.arrendatario || '_______________'}</span></p>
+                        <p>EL ARRENDATARIO</p>`;
+                }
+            },
+            servicios: {
+                title: "Contrato de Prestación de Servicios",
+                fields: [
+                    { id: "cliente", label: "Nombre del Cliente", placeholder: "Ej: Empresa ABC S.A." },
+                    { id: "direccion-cliente", label: "Dirección del Cliente", placeholder: "Ej: Calle Principal #123, Ciudad" },
+                    { id: "telefono-cliente", label: "Teléfono del Cliente", placeholder: "Ej: +52 555 123 4567" },
+                    { id: "prestador", label: "Nombre del Prestador de Servicios", placeholder: "Ej: Juan Pérez García" },
+                    { id: "direccion-prestador", label: "Dirección del Prestador", placeholder: "Ej: Av. Secundaria #456, Ciudad" },
+                    { id: "telefono-prestador", label: "Teléfono del Prestador", placeholder: "Ej: +52 555 987 6543" },
+                    { id: "descripcion-servicio", label: "Descripción del Servicio", placeholder: "Ej: Desarrollo de software, consultoría, etc." },
+                    { id: "honorarios", label: "Honorarios ($)", placeholder: "Ej: 50,000" },
+                    { id: "forma-pago", label: "Forma de Pago", placeholder: "Ej: 50% anticipo, 50% al finalizar" },
+                    { id: "fecha-inicio", label: "Fecha de Inicio", type: "date" },
+                    { id: "fecha-fin", label: "Fecha de Término", type: "date" }
+                ],
+                generate: function(data) {
+                    return `<h3>CONTRATO DE PRESTACIÓN DE SERVICIOS PROFESIONALES</h3>
+                        <p>En la ciudad de ___________, a los ${getFechaActual()} días del mes de ___________.</p>
+                        <p><strong>REUNIDOS</strong></p>
+                        <p>De una parte, <span class="variable">${data.cliente || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-cliente'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-cliente'] || '_______________'}</span>, en adelante denominado "EL CLIENTE".</p>
+                        <p>De otra parte, <span class="variable">${data.prestador || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-prestador'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-prestador'] || '_______________'}</span>, en adelante denominado "EL PRESTADOR".</p>
+                        <p><strong>CLÁUSULAS</strong></p>
+                        <p><strong>PRIMERA.- OBJETO.</strong> EL PRESTADOR se obliga a prestar servicios profesionales a EL CLIENTE consistentes en: <span class="variable">${data['descripcion-servicio'] || '_______________'}</span>.</p>
+                        <p><strong>SEGUNDA.- HONORARIOS.</strong> EL CLIENTE pagará a EL PRESTADOR la cantidad de $<span class="variable">${data.honorarios || '___________'}</span> pesos por los servicios prestados.</p>
+                        <p><strong>TERCERA.- FORMA DE PAGO.</strong> El pago se realizará de la siguiente forma: <span class="variable">${data['forma-pago'] || '_______________'}</span>.</p>
+                        <p><strong>CUARTA.- DURACIÓN.</strong> El presente contrato tendrá vigencia desde el <span class="variable">${data['fecha-inicio'] || '_______________'}</span> hasta el <span class="variable">${data['fecha-fin'] || '_______________'}</span>.</p>
+                        <p><strong>QUINTA.- CONFIDENCIALIDAD.</strong> Ambas partes se obligan a mantener la confidencialidad de la información intercambiada durante la vigencia del contrato y por un período de 5 años después de su terminación.</p>
+                        <p><strong>SEXTA.- PROPIEDAD INTELECTUAL.</strong> Los derechos de propiedad intelectual sobre los trabajos realizados serán propiedad de EL CLIENTE una vez realizado el pago total.</p>
+                        <p><strong>SÉPTIMA.- RESCISIÓN.</strong> Cualquiera de las partes podrá rescindir el contrato con 30 días de anticipación por escrito.</p>
+                        <br><br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.cliente || '_______________'}</span></p>
+                        <p>EL CLIENTE</p>
+                        <br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.prestador || '_______________'}</span></p>
+                        <p>EL PRESTADOR</p>`;
+                }
+            },
+            compraventa: {
+                title: "Contrato de Compraventa",
+                fields: [
+                    { id: "vendedor", label: "Nombre del Vendedor", placeholder: "Ej: Juan Pérez García" },
+                    { id: "direccion-vendedor", label: "Dirección del Vendedor", placeholder: "Ej: Calle Principal #123, Ciudad" },
+                    { id: "telefono-vendedor", label: "Teléfono del Vendedor", placeholder: "Ej: +52 555 123 4567" },
+                    { id: "comprador", label: "Nombre del Comprador", placeholder: "Ej: María López Rodríguez" },
+                    { id: "direccion-comprador", label: "Dirección del Comprador", placeholder: "Ej: Av. Secundaria #456, Ciudad" },
+                    { id: "telefono-comprador", label: "Teléfono del Comprador", placeholder: "Ej: +52 555 987 6543" },
+                    { id: "descripcion-bien", label: "Descripción del Bien", placeholder: "Ej: Vehículo marca X, modelo Y, año Z" },
+                    { id: "precio", label: "Precio Total ($)", placeholder: "Ej: 250,000" },
+                    { id: "anticipo", label: "Anticipo ($)", placeholder: "Ej: 50,000" },
+                    { id: "fecha-entrega", label: "Fecha de Entrega", type: "date" }
+                ],
+                generate: function(data) {
+                    return `<h3>CONTRATO DE COMPRAVENTA</h3>
+                        <p>En la ciudad de ___________, a los ${getFechaActual()} días del mes de ___________.</p>
+                        <p><strong>REUNIDOS</strong></p>
+                        <p>De una parte, <span class="variable">${data.vendedor || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-vendedor'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-vendedor'] || '_______________'}</span>, en adelante denominado "EL VENDEDOR".</p>
+                        <p>De otra parte, <span class="variable">${data.comprador || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-comprador'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-comprador'] || '_______________'}</span>, en adelante denominado "EL COMPRADOR".</p>
+                        <p><strong>CLÁUSULAS</strong></p>
+                        <p><strong>PRIMERA.- OBJETO.</strong> EL VENDEDOR vende a EL COMPRADOR el siguiente bien: <span class="variable">${data['descripcion-bien'] || '_______________'}</span>.</p>
+                        <p><strong>SEGUNDA.- PRECIO.</strong> El precio de la venta es de $<span class="variable">${data.precio || '___________'}</span> pesos.</p>
+                        <p><strong>TERCERA.- FORMA DE PAGO.</strong> EL COMPRADOR paga en este acto la cantidad de $<span class="variable">${data.anticipo || '___________'}</span> pesos en concepto de anticipo, siendo el resto pagadero en la fecha de entrega del bien.</p>
+                        <p><strong>CUARTA.- ENTREGA.</strong> EL VENDEDOR entregará el bien en la fecha: <span class="variable">${data['fecha-entrega'] || '_______________'}</span>.</p>
+                        <p><strong>QUINTA.- GARANTÍA.</strong> EL VENDEDOR garantiza que el bien está libre de gravámenes, que es de su legítima propiedad y que se encuentra en las condiciones descritas.</p>
+                        <p><strong>SEXTA.- ESTADO DEL BIEN.</strong> EL COMPRADOR declara haber revisado el bien y aceptarlo en el estado en que se encuentra.</p>
+                        <p><strong>SÉPTIMA.- GASTOS.</strong> Los gastos de escrituración, impuestos y demás que se originen serán por cuenta de EL COMPRADOR.</p>
+                        <br><br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.vendedor || '_______________'}</span></p>
+                        <p>EL VENDEDOR</p>
+                        <br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.comprador || '_______________'}</span></p>
+                        <p>EL COMPRADOR</p>`;
+                }
+            },
+            nda: {
+                title: "Acuerdo de Confidencialidad (NDA)",
+                fields: [
+                    { id: "parte-reveladora", label: "Nombre de la Parte Reveladora", placeholder: "Ej: Empresa ABC S.A." },
+                    { id: "direccion-reveladora", label: "Dirección de la Parte Reveladora", placeholder: "Ej: Calle Principal #123, Ciudad" },
+                    { id: "telefono-reveladora", label: "Teléfono de la Parte Reveladora", placeholder: "Ej: +52 555 123 4567" },
+                    { id: "parte-receptora", label: "Nombre de la Parte Receptora", placeholder: "Ej: Juan Pérez García" },
+                    { id: "direccion-receptora", label: "Dirección de la Parte Receptora", placeholder: "Ej: Av. Secundaria #456, Ciudad" },
+                    { id: "telefono-receptora", label: "Teléfono de la Parte Receptora", placeholder: "Ej: +52 555 987 6543" },
+                    { id: "duracion", label: "Duración del Acuerdo (años)", placeholder: "Ej: 5" }
+                ],
+                generate: function(data) {
+                    return `<h3>ACUERDO DE CONFIDENCIALIDAD</h3>
+                        <p>En la ciudad de ___________, a los ${getFechaActual()} días del mes de ___________.</p>
+                        <p><strong>REUNIDOS</strong></p>
+                        <p>De una parte, <span class="variable">${data['parte-reveladora'] || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-reveladora'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-reveladora'] || '_______________'}</span>, en adelante denominado "PARTE REVELADORA".</p>
+                        <p>De otra parte, <span class="variable">${data['parte-receptora'] || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-receptora'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-receptora'] || '_______________'}</span>, en adelante denominado "PARTE RECEPTORA".</p>
+                        <p><strong>CLÁUSULAS</strong></p>
+                        <p><strong>PRIMERA.- DEFINICIÓN.</strong> Se entenderá por "Información Confidencial" toda aquella información técnica, comercial, financiera, estratégica o de cualquier otra naturaleza que sea revelada por la PARTE REVELADORA a la PARTE RECEPTORA.</p>
+                        <p><strong>SEGUNDA.- OBLIGACIONES.</strong> La PARTE RECEPTORA se obliga a: a) Mantener la más estricta confidencialidad. b) No divulgar la información a terceros. c) Utilizar la información únicamente para los fines acordados. d) Implementar medidas de seguridad adecuadas.</p>
+                        <p><strong>TERCERA.- DURACIÓN.</strong> Las obligaciones de confidencialidad tendrán una vigencia de <span class="variable">${data.duracion || '___'}</span> años a partir de la fecha de firma.</p>
+                        <p><strong>CUARTA.- EXCEPCIONES.</strong> Las obligaciones no aplicarán a información que: a) Sea de dominio público. b) Ya sea conocida por la PARTE RECEPTORA. c) Sea desarrollada independientemente. d) Sea requerida por orden judicial.</p>
+                        <p><strong>QUINTA.- DEVOLUCIÓN.</strong> Al término del acuerdo, la PARTE RECEPTORA deberá devolver o destruir toda la Información Confidencial.</p>
+                        <p><strong>SEXTA.- SANCIONES.</strong> El incumplimiento dará derecho a la PARTE REVELADORA a reclamar daños y perjuicios.</p>
+                        <br><br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data['parte-reveladora'] || '_______________'}</span></p>
+                        <p>PARTE REVELADORA</p>
+                        <br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data['parte-receptora'] || '_______________'}</span></p>
+                        <p>PARTE RECEPTORA</p>`;
+                }
+            },
+            laboral: {
+                title: "Contrato Individual de Trabajo",
+                fields: [
+                    { id: "patron", label: "Nombre del Patrón/Empresa", placeholder: "Ej: Empresa ABC S.A." },
+                    { id: "direccion-patron", label: "Dirección del Patrón", placeholder: "Ej: Calle Principal #123, Ciudad" },
+                    { id: "telefono-patron", label: "Teléfono del Patrón", placeholder: "Ej: +52 555 123 4567" },
+                    { id: "trabajador", label: "Nombre del Trabajador", placeholder: "Ej: Juan Pérez García" },
+                    { id: "direccion-trabajador", label: "Dirección del Trabajador", placeholder: "Ej: Av. Secundaria #456, Ciudad" },
+                    { id: "telefono-trabajador", label: "Teléfono del Trabajador", placeholder: "Ej: +52 555 987 6543" },
+                    { id: "puesto", label: "Puesto/ Cargo", placeholder: "Ej: Gerente de Ventas" },
+                    { id: "salario", label: "Salario Mensual ($)", placeholder: "Ej: 25,000" },
+                    { id: "horario", label: "Horario de Trabajo", placeholder: "Ej: Lunes a Viernes 9:00 a 18:00" },
+                    { id: "fecha-inicio", label: "Fecha de Inicio", type: "date" }
+                ],
+                generate: function(data) {
+                    return `<h3>CONTRATO INDIVIDUAL DE TRABAJO</h3>
+                        <p>En la ciudad de ___________, a los ${getFechaActual()} días del mes de ___________.</p>
+                        <p><strong>REUNIDOS</strong></p>
+                        <p>De una parte, <span class="variable">${data.patron || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-patron'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-patron'] || '_______________'}</span>, en adelante denominado "EL PATRÓN".</p>
+                        <p>De otra parte, <span class="variable">${data.trabajador || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-trabajador'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-trabajador'] || '_______________'}</span>, en adelante denominado "EL TRABAJADOR".</p>
+                        <p><strong>CLÁUSULAS</strong></p>
+                        <p><strong>PRIMERA.- OBJETO.</strong> EL TRABAJADOR se obliga a prestar sus servicios personales y subordinados a EL PATRÓN desempeñando el puesto de <span class="variable">${data.puesto || '_______________'}</span>.</p>
+                        <p><strong>SEGUNDA.- LUGAR DE TRABAJO.</strong> Los servicios se prestarán en el domicilio de EL PATRÓN ubicado en <span class="variable">${data['direccion-patron'] || '_______________'}</span>.</p>
+                        <p><strong>TERCERA.- JORNADA.</strong> La jornada de trabajo será <span class="variable">${data.horario || '_______________'}</span>.</p>
+                        <p><strong>CUARTA.- SALARIO.</strong> EL PATRÓN pagará a EL TRABAJADOR un salario mensual de $<span class="variable">${data.salario || '___________'}</span> pesos, pagadero los días 15 y último de cada mes.</p>
+                        <p><strong>QUINTA.- DURACIÓN.</strong> El presente contrato inicia el <span class="variable">${data['fecha-inicio'] || '_______________'}</span>.</p>
+                        <p><strong>SEXTA.- PRESTACIONES.</strong> EL TRABAJADOR tendrá derecho a las prestaciones que marca la ley: vacaciones, prima vacacional, aguinaldo, seguridad social, etc.</p>
+                        <p><strong>SÉPTIMA.- CONFIDENCIALIDAD.</strong> EL TRABAJADOR se obliga a guardar confidencialidad sobre la información de la empresa.</p>
+                        <br><br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.patron || '_______________'}</span></p>
+                        <p>EL PATRÓN</p>
+                        <br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.trabajador || '_______________'}</span></p>
+                        <p>EL TRABAJADOR</p>`;
+                }
+            },
+            "demanda-pago": {
+                title: "Demanda de Pago",
+                fields: [
+                    { id: "demandante", label: "Nombre del Demandante", placeholder: "Ej: Juan Pérez García" },
+                    { id: "direccion-demandante", label: "Dirección del Demandante", placeholder: "Ej: Calle Principal #123, Ciudad" },
+                    { id: "telefono-demandante", label: "Teléfono del Demandante", placeholder: "Ej: +52 555 123 4567" },
+                    { id: "demandado", label: "Nombre del Demandado", placeholder: "Ej: María López Rodríguez" },
+                    { id: "direccion-demandado", label: "Dirección del Demandado", placeholder: "Ej: Av. Secundaria #456, Ciudad" },
+                    { id: "telefono-demandado", label: "Teléfono del Demandado", placeholder: "Ej: +52 555 987 6543" },
+                    { id: "monto", label: "Monto Reclamado ($)", placeholder: "Ej: 50,000" },
+                    { id: "concepto", label: "Concepto de la Deuda", placeholder: "Ej: Préstamo, servicios, mercancía" },
+                    { id: "fecha-deuda", label: "Fecha de la Deuda", type: "date" }
+                ],
+                generate: function(data) {
+                    return `<h3>DEMANDA DE PAGO</h3>
+                        <p><strong>C. JUEZ DE LO CIVIL</strong></p>
+                        <p><strong>P R E S E N T E</strong></p>
+                        <p><span class="variable">${data.demandante || '_______________'}</span>, por mi propio derecho, señalando como domicilio para oír y recibir notificaciones el ubicado en <span class="variable">${data['direccion-demandante'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-demandante'] || '_______________'}</span>, ante Usted con el debido respeto comparezco y expongo:</p>
+                        <p>Que por medio del presente escrito y en la vía <strong>ORDINARIA CIVIL</strong>, vengo a demandar a <span class="variable">${data.demandado || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-demandado'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-demandado'] || '_______________'}</span>, el pago y reclamo de las siguientes cantidades:</p>
+                        <p><strong>PRESTACIONES:</strong></p>
+                        <p>a) La cantidad de $<span class="variable">${data.monto || '___________'}</span> pesos por concepto de <span class="variable">${data.concepto || '_______________'}</span>.</p>
+                        <p>b) El pago de intereses moratorios generados desde la fecha <span class="variable">${data['fecha-deuda'] || '_______________'}</span>.</p>
+                        <p>c) El pago de gastos y costas del juicio.</p>
+                        <p><strong>FUNDAMENTO DE MI ACCIÓN:</strong></p>
+                        <p>1. Con fecha <span class="variable">${data['fecha-deuda'] || '_______________'}</span>, celebré con el demandado un acuerdo mediante el cual se estableció la obligación de pago por concepto de <span class="variable">${data.concepto || '_______________'}</span>.</p>
+                        <p>2. El demandado se obligó a pagar la cantidad de $<span class="variable">${data.monto || '___________'}</span> pesos, compromiso que no ha cumplido a la fecha.</p>
+                        <p>3. A pesar de los requerimientos extrajudiciales realizados, el demandado se ha negado a cumplir con su obligación de pago.</p>
+                        <p>Por lo anteriormente expuesto, a Usted C. Juez, atentamente pido:</p>
+                        <p><strong>PETICIONES:</strong></p>
+                        <p>PRIMERO.- Me tenga por presentado con este escrito, demandando en la vía y forma propuestas a <span class="variable">${data.demandado || '_______________'}</span>.</p>
+                        <p>SEGUNDO.- Admita la demanda y emplace al demandado para que conteste dentro del término de ley.</p>
+                        <p>TERCERO.- En su oportunidad, dicte sentencia condenando al demandado al pago de las prestaciones reclamadas.</p>
+                        <p><strong>PROTESTO LO NECESARIO</strong></p>
+                        <p>___________, a los ${getFechaActual()} días del mes de ___________.</p>
+                        <br><br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.demandante || '_______________'}</span></p>`;
+                }
+            },
+            "demanda-desalojo": {
+                title: "Demanda de Desalojo",
+                fields: [
+                    { id: "arrendador", label: "Nombre del Arrendador (Demandante)", placeholder: "Ej: Juan Pérez García" },
+                    { id: "direccion-arrendador", label: "Dirección del Arrendador", placeholder: "Ej: Calle Principal #123, Ciudad" },
+                    { id: "telefono-arrendador", label: "Teléfono del Arrendador", placeholder: "Ej: +52 555 123 4567" },
+                    { id: "arrendatario", label: "Nombre del Arrendatario (Demandado)", placeholder: "Ej: María López Rodríguez" },
+                    { id: "direccion-arrendatario", label: "Dirección del Arrendatario", placeholder: "Ej: Av. Secundaria #456, Ciudad" },
+                    { id: "telefono-arrendatario", label: "Teléfono del Arrendatario", placeholder: "Ej: +52 555 987 6543" },
+                    { id: "direccion-propiedad", label: "Dirección de la Propiedad", placeholder: "Ej: Calle Terciaria #789, Colonia Centro" },
+                    { id: "fecha-vencimiento", label: "Fecha de Vencimiento del Contrato", type: "date" },
+                    { id: "meses-atraso", label: "Meses de Atraso en el Pago", placeholder: "Ej: 3" }
+                ],
+                generate: function(data) {
+                    return `<h3>DEMANDA DE DESALOJO POR VENCIMIENTO DE CONTRATO</h3>
+                        <p><strong>C. JUEZ DE LO CIVIL</strong></p>
+                        <p><strong>P R E S E N T E</strong></p>
+                        <p><span class="variable">${data.arrendador || '_______________'}</span>, por mi propio derecho, señalando como domicilio para oír y recibir notificaciones el ubicado en <span class="variable">${data['direccion-arrendador'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-arrendador'] || '_______________'}</span>, ante Usted con el debido respeto comparezco y expongo:</p>
+                        <p>Que por medio del presente escrito y en la vía <strong>ESPECIAL DE DESALOJO</strong>, vengo a demandar a <span class="variable">${data.arrendatario || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-arrendatario'] || '_______________'}</span>, lo siguiente:</p>
+                        <p><strong>PRESTACIONES:</strong></p>
+                        <p>a) El desalojo del inmueble ubicado en <span class="variable">${data['direccion-propiedad'] || '_______________'}</span>.</p>
+                        <p>b) El pago de rentas vencidas y no pagadas.</p>
+                        <p>c) El pago de daños y perjuicios.</p>
+                        <p>d) El pago de gastos y costas del juicio.</p>
+                        <p><strong>FUNDAMENTO DE MI ACCIÓN:</strong></p>
+                        <p>1. Con fecha ___________, celebré con el demandado un contrato de arrendamiento sobre el inmueble ubicado en <span class="variable">${data['direccion-propiedad'] || '_______________'}</span>.</p>
+                        <p>2. Dicho contrato venció el día <span class="variable">${data['fecha-vencimiento'] || '_______________'}</span>, habiendo transcurrido más de <span class="variable">${data['meses-atraso'] || '___'}</span> meses sin que el demandado haya desocupado el inmueble.</p>
+                        <p>3. El demandado se ha negado a desocupar el inmueble a pesar de los requerimientos realizados.</p>
+                        <p>Por lo anteriormente expuesto, a Usted C. Juez, atentamente pido:</p>
+                        <p><strong>PETICIONES:</strong></p>
+                        <p>PRIMERO.- Me tenga por presentado con este escrito, demandando en la vía y forma propuestas.</p>
+                        <p>SEGUNDO.- Admita la demanda y ordene el emplazamiento del demandado.</p>
+                        <p>TERCERO.- En su oportunidad, dicte sentencia ordenando el desalojo del inmueble.</p>
+                        <p><strong>PROTESTO LO NECESARIO</strong></p>
+                        <p>___________, a los ${getFechaActual()} días del mes de ___________.</p>
+                        <br><br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.arrendador || '_______________'}</span></p>`;
+                }
+            },
+            "demanda-laboral": {
+                title: "Demanda Laboral",
+                fields: [
+                    { id: "trabajador", label: "Nombre del Trabajador (Demandante)", placeholder: "Ej: Juan Pérez García" },
+                    { id: "direccion-trabajador", label: "Dirección del Trabajador", placeholder: "Ej: Calle Principal #123, Ciudad" },
+                    { id: "telefono-trabajador", label: "Teléfono del Trabajador", placeholder: "Ej: +52 555 123 4567" },
+                    { id: "patron", label: "Nombre del Patrón/Empresa (Demandado)", placeholder: "Ej: Empresa ABC S.A." },
+                    { id: "direccion-patron", label: "Dirección del Patrón", placeholder: "Ej: Av. Secundaria #456, Ciudad" },
+                    { id: "telefono-patron", label: "Teléfono del Patrón", placeholder: "Ej: +52 555 987 6543" },
+                    { id: "puesto", label: "Puesto Desempeñado", placeholder: "Ej: Gerente de Ventas" },
+                    { id: "salario", label: "Salario Diario ($)", placeholder: "Ej: 500" },
+                    { id: "fecha-ingreso", label: "Fecha de Ingreso", type: "date" },
+                    { id: "fecha-despido", label: "Fecha de Despido", type: "date" }
+                ],
+                generate: function(data) {
+                    return `<h3>DEMANDA LABORAL</h3>
+                        <p><strong>C. JUNTA ESPECIAL No. ___ DE LA JUNTA LOCAL DE CONCILIACIÓN Y ARBITRAJE</strong></p>
+                        <p><strong>P R E S E N T E</strong></p>
+                        <p><span class="variable">${data.trabajador || '_______________'}</span>, por mi propio derecho, señalando como domicilio para oír y recibir notificaciones el ubicado en <span class="variable">${data['direccion-trabajador'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-trabajador'] || '_______________'}</span>, ante Usted con el debido respeto comparezco y expongo:</p>
+                        <p>Que por medio del presente escrito vengo a demandar a <span class="variable">${data.patron || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-patron'] || '_______________'}</span>, el pago de las siguientes prestaciones:</p>
+                        <p><strong>PRESTACIONES RECLAMADAS:</strong></p>
+                        <p>a) Indemnización constitucional de 3 meses de salario integrado.</p>
+                        <p>b) Prima de antigüedad.</p>
+                        <p>c) Vacaciones no disfrutadas.</p>
+                        <p>d) Prima vacacional.</p>
+                        <p>e) Aguinaldo proporcional.</p>
+                        <p>f) Salarios caídos.</p>
+                        <p><strong>HECHOS:</strong></p>
+                        <p>1. Con fecha <span class="variable">${data['fecha-ingreso'] || '_______________'}</span>, inicié mis labores para el demandado desempeñando el puesto de <span class="variable">${data.puesto || '_______________'}</span>, percibiendo un salario diario de $<span class="variable">${data.salario || '___________'}</span> pesos.</p>
+                        <p>2. Con fecha <span class="variable">${data['fecha-despido'] || '_______________'}</span>, el demandado me despidió injustificadamente sin pagar las prestaciones que marca la ley.</p>
+                        <p>Por lo anteriormente expuesto, a Usted C. Presidente de la Junta, atentamente pido:</p>
+                        <p><strong>PETICIONES:</strong></p>
+                        <p>PRIMERO.- Me tenga por presentado con este escrito, demandando a <span class="variable">${data.patron || '_______________'}</span>.</p>
+                        <p>SEGUNDO.- Admita la demanda y corra traslado al demandado.</p>
+                        <p>TERCERO.- Se señale fecha para la audiencia de conciliación, demanda y excepciones.</p>
+                        <p>CUARTO.- En su oportunidad, dicte laudo condenando al demandado al pago de las prestaciones reclamadas.</p>
+                        <p><strong>PROTESTO LO NECESARIO</strong></p>
+                        <p>___________, a los ${getFechaActual()} días del mes de ___________.</p>
+                        <br><br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.trabajador || '_______________'}</span></p>`;
+                }
+            },
+            "demanda-incumplimiento": {
+                title: "Demanda por Incumplimiento de Contrato",
+                fields: [
+                    { id: "demandante", label: "Nombre del Demandante", placeholder: "Ej: Juan Pérez García" },
+                    { id: "direccion-demandante", label: "Dirección del Demandante", placeholder: "Ej: Calle Principal #123, Ciudad" },
+                    { id: "telefono-demandante", label: "Teléfono del Demandante", placeholder: "Ej: +52 555 123 4567" },
+                    { id: "demandado", label: "Nombre del Demandado", placeholder: "Ej: María López Rodríguez" },
+                    { id: "direccion-demandado", label: "Dirección del Demandado", placeholder: "Ej: Av. Secundaria #456, Ciudad" },
+                    { id: "telefono-demandado", label: "Teléfono del Demandado", placeholder: "Ej: +52 555 987 6543" },
+                    { id: "tipo-contrato", label: "Tipo de Contrato", placeholder: "Ej: Compraventa, Servicios, Arrendamiento" },
+                    { id: "fecha-contrato", label: "Fecha del Contrato", type: "date" },
+                    { id: "incumplimiento", label: "Descripción del Incumplimiento", placeholder: "Ej: No entregó la mercancía, no pagó el servicio" }
+                ],
+                generate: function(data) {
+                    return `<h3>DEMANDA POR INCUMPLIMIENTO DE CONTRATO</h3>
+                        <p><strong>C. JUEZ DE LO CIVIL</strong></p>
+                        <p><strong>P R E S E N T E</strong></p>
+                        <p><span class="variable">${data.demandante || '_______________'}</span>, por mi propio derecho, señalando como domicilio para oír y recibir notificaciones el ubicado en <span class="variable">${data['direccion-demandante'] || '_______________'}</span>, teléfono <span class="variable">${data['telefono-demandante'] || '_______________'}</span>, ante Usted con el debido respeto comparezco y expongo:</p>
+                        <p>Que por medio del presente escrito y en la vía <strong>ORDINARIA CIVIL</strong>, vengo a demandar a <span class="variable">${data.demandado || '_______________'}</span>, con domicilio en <span class="variable">${data['direccion-demandado'] || '_______________'}</span>, lo siguiente:</p>
+                        <p><strong>PRESTACIONES:</strong></p>
+                        <p>a) La rescisión del contrato de <span class="variable">${data['tipo-contrato'] || '_______________'}</span> celebrado con fecha <span class="variable">${data['fecha-contrato'] || '_______________'}</span>.</p>
+                        <p>b) El pago de daños y perjuicios.</p>
+                        <p>c) La devolución de cantidades pagadas.</p>
+                        <p>d) El pago de gastos y costas del juicio.</p>
+                        <p><strong>HECHOS:</strong></p>
+                        <p>1. Con fecha <span class="variable">${data['fecha-contrato'] || '_______________'}</span>, celebré con el demandado un contrato de <span class="variable">${data['tipo-contrato'] || '_______________'}</span>.</p>
+                        <p>2. El demandado ha incumplido sus obligaciones de la siguiente manera: <span class="variable">${data.incumplimiento || '_______________'}</span>.</p>
+                        <p>3. Este incumplimiento me ha causado daños y perjuicios.</p>
+                        <p>Por lo anteriormente expuesto, a Usted C. Juez, atentamente pido:</p>
+                        <p><strong>PETICIONES:</strong></p>
+                        <p>PRIMERO.- Me tenga por presentado con este escrito, demandando en la vía y forma propuestas.</p>
+                        <p>SEGUNDO.- Admita la demanda y emplace al demandado.</p>
+                        <p>TERCERO.- En su oportunidad, dicte sentencia declarando la rescisión del contrato y condenando al demandado al pago de las prestaciones reclamadas.</p>
+                        <p><strong>PROTESTO LO NECESARIO</strong></p>
+                        <p>___________, a los ${getFechaActual()} días del mes de ___________.</p>
+                        <br><br>
+                        <p>_______________________________</p>
+                        <p><span class="variable">${data.demandante || '_______________'}</span></p>`;
+                }
+            }
+        };
+
+        let currentTemplate = 'arrendamiento';
+
+        function getFechaActual() {
+            const hoy = new Date();
+            return hoy.getDate();
+        }
+
+        function cargarTemplate(templateId) {
+            currentTemplate = templateId;
+            const template = templates[templateId];
+            document.getElementById('form-title').textContent = template.title;
+            const formContainer = document.getElementById('form-container');
+            formContainer.innerHTML = '';
+            template.fields.forEach(field => {
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group';
+                const label = document.createElement('label');
+                label.textContent = field.label + ':';
+                formGroup.appendChild(label);
+                const input = document.createElement('input');
+                input.type = field.type || 'text';
+                input.id = field.id;
+                input.placeholder = field.placeholder || '';
+                formGroup.appendChild(input);
+                formContainer.appendChild(formGroup);
+            });
+            document.getElementById('preview-section').classList.add('hidden');
+        }
+
+        function generarDocumento() {
+            const template = templates[currentTemplate];
+            const data = {};
+            template.fields.forEach(field => {
+                const input = document.getElementById(field.id);
+                data[field.id] = input.value;
+            });
+            const documentContent = template.generate(data);
+            document.getElementById('document-preview').innerHTML = documentContent;
+            document.getElementById('preview-section').classList.remove('hidden');
+            document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function limpiarFormulario() {
+            const inputs = document.querySelectorAll('#form-container input');
+            inputs.forEach(input => { input.value = ''; });
+            document.getElementById('preview-section').classList.add('hidden');
+        }
+
+        function cargarDatosMuestra() {
+            const datosMuestra = {
+                arrendamiento: { arrendador: "Juan Pérez García", "direccion-arrendador": "Calle Reforma #123, Col. Centro, CDMX", "telefono-arrendador": "+52 55 1234 5678", arrendatario: "María López Rodríguez", "direccion-arrendatario": "Av. Insurgentes #456, Col. Roma, CDMX", "telefono-arrendatario": "+52 55 8765 4321", "direccion-propiedad": "Calle Madero #789, Col. Centro, CDMX", renta: "15,000", deposito: "15,000", "fecha-inicio": "2024-01-01", duracion: "12" },
+                servicios: { cliente: "Empresa ABC S.A. de C.V.", "direccion-cliente": "Av. Reforma #100, Col. Juárez, CDMX", "telefono-cliente": "+52 55 1111 2222", prestador: "Juan Pérez García", "direccion-prestador": "Calle Hidalgo #200, Col. Centro, CDMX", "telefono-prestador": "+52 55 3333 4444", "descripcion-servicio": "Desarrollo de software personalizado", honorarios: "50,000", "forma-pago": "50% al inicio, 50% al finalizar", "fecha-inicio": "2024-01-15", "fecha-fin": "2024-06-15" },
+                compraventa: { vendedor: "Juan Pérez García", "direccion-vendedor": "Calle Reforma #123, Col. Centro, CDMX", "telefono-vendedor": "+52 55 1234 5678", comprador: "María López Rodríguez", "direccion-comprador": "Av. Insurgentes #456, Col. Roma, CDMX", "telefono-comprador": "+52 55 8765 4321", "descripcion-bien": "Vehículo marca Toyota, modelo Corolla, año 2020, color blanco", precio: "250,000", anticipo: "50,000", "fecha-entrega": "2024-02-01" },
+                nda: { "parte-reveladora": "Empresa ABC S.A. de C.V.", "direccion-reveladora": "Av. Reforma #100, Col. Juárez, CDMX", "telefono-reveladora": "+52 55 1111 2222", "parte-receptora": "Juan Pérez García", "direccion-receptora": "Calle Hidalgo #200, Col. Centro, CDMX", "telefono-receptora": "+52 55 3333 4444", duracion: "5" },
+                laboral: { patron: "Empresa ABC S.A. de C.V.", "direccion-patron": "Av. Reforma #100, Col. Juárez, CDMX", "telefono-patron": "+52 55 1111 2222", trabajador: "Juan Pérez García", "direccion-trabajador": "Calle Hidalgo #200, Col. Centro, CDMX", "telefono-trabajador": "+52 55 3333 4444", puesto: "Gerente de Ventas", salario: "25,000", horario: "Lunes a Viernes de 9:00 a 18:00 horas", "fecha-inicio": "2024-01-15" },
+                "demanda-pago": { demandante: "Juan Pérez García", "direccion-demandante": "Calle Reforma #123, Col. Centro, CDMX", "telefono-demandante": "+52 55 1234 5678", demandado: "María López Rodríguez", "direccion-demandado": "Av. Insurgentes #456, Col. Roma, CDMX", "telefono-demandado": "+52 55 8765 4321", monto: "50,000", concepto: "Préstamo personal", "fecha-deuda": "2023-06-15" },
+                "demanda-desalojo": { arrendador: "Juan Pérez García", "direccion-arrendador": "Calle Reforma #123, Col. Centro, CDMX", "telefono-arrendador": "+52 55 1234 5678", arrendatario: "María López Rodríguez", "direccion-arrendatario": "Av. Insurgentes #456, Col. Roma, CDMX", "telefono-arrendatario": "+52 55 8765 4321", "direccion-propiedad": "Calle Madero #789, Col. Centro, CDMX", "fecha-vencimiento": "2023-12-31", "meses-atraso": "3" },
+                "demanda-laboral": { trabajador: "Juan Pérez García", "direccion-trabajador": "Calle Reforma #123, Col. Centro, CDMX", "telefono-trabajador": "+52 55 1234 5678", patron: "Empresa ABC S.A. de C.V.", "direccion-patron": "Av. Insurgentes #456, Col. Roma, CDMX", "telefono-patron": "+52 55 8765 4321", puesto: "Gerente de Ventas", salario: "500", "fecha-ingreso": "2020-01-15", "fecha-despido": "2024-01-10" },
+                "demanda-incumplimiento": { demandante: "Juan Pérez García", "direccion-demandante": "Calle Reforma #123, Col. Centro, CDMX", "telefono-demandante": "+52 55 1234 5678", demandado: "María López Rodríguez", "direccion-demandado": "Av. Insurgentes #456, Col. Roma, CDMX", "telefono-demandado": "+52 55 8765 4321", "tipo-contrato": "Compraventa", "fecha-contrato": "2023-11-15", incumplimiento: "No entregó la mercancía pagada" }
+            };
+            const datos = datosMuestra[currentTemplate];
+            if (datos) {
+                Object.keys(datos).forEach(key => {
+                    const input = document.getElementById(key);
+                    if (input) { input.value = datos[key]; }
+                });
+            }
+        }
+
+        function ocultarVistaPrevia() {
+            document.getElementById('preview-section').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const templateItems = document.querySelectorAll('.template-list li');
+            templateItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    templateItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    cargarTemplate(this.dataset.template);
+                });
+            });
+            cargarTemplate('arrendamiento');
+        });
+    </script>
+</body>
+</html>
